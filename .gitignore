@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# JetBrains (GoLand и др.)
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Go: собранные бинарники
+*.exe
+*.test
+/hw*/vyshkat
+bin/
+dist/
+
+# Go: покрытие тестами
+*.out
+coverage.html
+
+# Go: локальный workspace (у каждой домашки свой go.mod)
+go.work
+go.work.sum
+
+# Секреты и локальные настройки
+.env
+.env.*
+
+.claude/
+
+*.pdf
