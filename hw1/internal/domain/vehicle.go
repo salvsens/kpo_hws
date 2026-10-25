@@ -21,8 +21,8 @@ type baseVehicle struct {
 }
 
 // newBaseVehicle проверяет номер, название и простоту транспорта.
-func newBaseVehicle(id, name string, simplicity int) (baseVehicle, error) {
-	asset, err := newBaseAsset(id, name)
+func newBaseVehicle(kind Kind, id, name string, simplicity int) (baseVehicle, error) {
+	asset, err := newBaseAsset(kind, id, name)
 	if err != nil {
 		return baseVehicle{}, err
 	}
@@ -36,8 +36,8 @@ func newBaseVehicle(id, name string, simplicity int) (baseVehicle, error) {
 func (v baseVehicle) BeginnerSimplicity() int { return v.simplicity }
 
 // newElectricVehicle собирает общую часть транспорта с электромотором.
-func newElectricVehicle(id, name string, simplicity int, dailyKWh float64) (baseVehicle, energyUsage, error) {
-	vehicle, err := newBaseVehicle(id, name, simplicity)
+func newElectricVehicle(kind Kind, id, name string, simplicity int, dailyKWh float64) (baseVehicle, energyUsage, error) {
+	vehicle, err := newBaseVehicle(kind, id, name, simplicity)
 	if err != nil {
 		return baseVehicle{}, energyUsage{}, err
 	}
@@ -55,7 +55,7 @@ type Bicycle struct {
 
 // NewBicycle создаёт велосипед, проверяя номер, название и простоту.
 func NewBicycle(id, name string, simplicity int) (*Bicycle, error) {
-	vehicle, err := newBaseVehicle(id, name, simplicity)
+	vehicle, err := newBaseVehicle(KindBicycle, id, name, simplicity)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ type ElectricScooter struct {
 
 // NewElectricScooter создаёт электросамокат, проверяя номер, название, простоту и расход.
 func NewElectricScooter(id, name string, simplicity int, dailyKWh float64) (*ElectricScooter, error) {
-	vehicle, energy, err := newElectricVehicle(id, name, simplicity, dailyKWh)
+	vehicle, energy, err := newElectricVehicle(KindElectricScooter, id, name, simplicity, dailyKWh)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ type ElectricBike struct {
 
 // NewElectricBike создаёт электровелосипед, проверяя номер, название, простоту и расход.
 func NewElectricBike(id, name string, simplicity int, dailyKWh float64) (*ElectricBike, error) {
-	vehicle, energy, err := newElectricVehicle(id, name, simplicity, dailyKWh)
+	vehicle, energy, err := newElectricVehicle(KindElectricBike, id, name, simplicity, dailyKWh)
 	if err != nil {
 		return nil, err
 	}

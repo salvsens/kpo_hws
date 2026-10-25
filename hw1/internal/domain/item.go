@@ -7,7 +7,7 @@ type Helmet struct {
 
 // NewHelmet создаёт шлем, проверяя номер и название.
 func NewHelmet(id, name string) (*Helmet, error) {
-	asset, err := newBaseAsset(id, name)
+	asset, err := newBaseAsset(KindHelmet, id, name)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ type DockStation struct {
 
 // NewDockStation создаёт док-станцию, проверяя номер, название и расход.
 func NewDockStation(id, name string, dailyKWh float64) (*DockStation, error) {
-	asset, energy, err := newElectricItem(id, name, dailyKWh)
+	asset, energy, err := newElectricItem(KindDockStation, id, name, dailyKWh)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ type ChargingCabinet struct {
 
 // NewChargingCabinet создаёт зарядный шкаф, проверяя номер, название и расход.
 func NewChargingCabinet(id, name string, dailyKWh float64) (*ChargingCabinet, error) {
-	asset, energy, err := newElectricItem(id, name, dailyKWh)
+	asset, energy, err := newElectricItem(KindChargingCabinet, id, name, dailyKWh)
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +45,8 @@ func NewChargingCabinet(id, name string, dailyKWh float64) (*ChargingCabinet, er
 }
 
 // newElectricItem собирает общую часть вещи, потребляющей энергию.
-func newElectricItem(id, name string, dailyKWh float64) (baseAsset, energyUsage, error) {
-	asset, err := newBaseAsset(id, name)
+func newElectricItem(kind Kind, id, name string, dailyKWh float64) (baseAsset, energyUsage, error) {
+	asset, err := newBaseAsset(kind, id, name)
 	if err != nil {
 		return baseAsset{}, energyUsage{}, err
 	}
