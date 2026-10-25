@@ -1,0 +1,78 @@
+# Конфиг golangci-lint v2 — набор линтеров из шаблона преподавателя.
+# Проверка: make lint (или golangci-lint run).
+version: "2"
+
+run:
+  tests: true
+
+linters:
+  default: standard
+  enable:
+    - errorlint # ошибки сравнивать через errors.Is/As, оборачивать через %w
+    - misspell # опечатки, в том числе в комментариях
+    - revive # стиль: именование, doc-комментарии к экспортируемому
+    - modernize # современные идиомы Go
+    - copyloopvar # захват переменной цикла
+    - dupl # дублирование кода
+    - funlen # слишком длинные функции
+    - gocognit # когнитивная сложность
+    - goconst # повторяющиеся строковые литералы
+    - gocritic # подозрительные паттерны и микрооптимизации
+    - gocyclo # цикломатическая сложность
+    - godot # точка в конце doc-комментария
+    - gosec # типичные проблемы безопасности
+    - mnd # магические числа
+    - nestif # глубоко вложенные if
+    - perfsprint # быстрые альтернативы fmt.Sprintf
+    - thelper # t.Helper() в тестовых хелперах
+    - usestdlibvars # константы stdlib вместо литералов
+    - usetesting # t.TempDir()/t.Context() вместо os.* в тестах
+    - whitespace # лишние пустые строки по краям блоков
+  settings:
+    funlen:
+      lines: 60
+      statements: 40
+    gocognit:
+      min-complexity: 15
+    gocyclo:
+      min-complexity: 15
+    nestif:
+      min-complexity: 4
+    mnd:
+      # «condition» не проверяем: len(args) != N — идиоматичная проверка,
+      # а не магическое число.
+      checks:
+        - argument
+        - case
+        - operation
+        - return
+        - assign
+    godot:
+      scope: declarations # проверять только doc-комментарии
+  exclusions:
+    presets:
+      - std-error-handling
+      - common-false-positives
+    rules:
+      # Тесты пишем свободнее.
+      - path: _test\.go
+        linters:
+          - dupl
+          - errcheck
+          - funlen
+          - gocognit
+          - goconst
+          - mnd
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - hw1
+
+issues:
+  max-same-issues: 0
+  max-issues-per-linter: 0
