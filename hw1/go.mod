@@ -1,3 +1,3 @@
-module hw1
+module example.com/vyshkat
 
 go 1.26.5

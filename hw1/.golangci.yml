@@ -71,7 +71,7 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - hw1
+        - example.com/vyshkat
 
 issues:
   max-same-issues: 0
