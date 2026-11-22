@@ -53,6 +53,11 @@ func (r *Rubric) Criteria() []Criterion {
 	return slices.Clone(r.criteria)
 }
 
+// Clone returns a copy of the rubric with an independent list of criteria.
+func (r Rubric) Clone() Rubric {
+	return Rubric{criteria: r.Criteria()}
+}
+
 // FindCriterion returns the criterion with the specified ID.
 // It returns a zero criterion and false if the rubric has no criterion with that ID.
 func (r *Rubric) FindCriterion(id string) (Criterion, bool) {

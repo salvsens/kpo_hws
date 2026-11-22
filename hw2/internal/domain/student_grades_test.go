@@ -147,6 +147,27 @@ func TestStudentCancelGrade(t *testing.T) {
 	checkGrade(t, student, practiceCriterionID, 900)
 }
 
+func TestStudentClone(t *testing.T) {
+	t.Parallel()
+
+	rubric := newGradeTestRubric(t)
+	student := newGradeTestStudent(t)
+	if err := student.SetGrade(rubric, practiceCriterionID, 800); err != nil {
+		t.Fatalf("SetGrade(rubric, %q, 800) error = %v, want nil", practiceCriterionID, err)
+	}
+
+	clone := student.Clone()
+	if err := clone.EditGrade(rubric, practiceCriterionID, 900); err != nil {
+		t.Fatalf("EditGrade(rubric, %q, 900) error = %v, want nil", practiceCriterionID, err)
+	}
+
+	if clone.ID() != student.ID() || clone.Name() != student.Name() {
+		t.Errorf("Clone() student = (%q, %q), want (%q, %q)", clone.ID(), clone.Name(), student.ID(), student.Name())
+	}
+	checkGrade(t, student, practiceCriterionID, 800)
+	checkGrade(t, clone, practiceCriterionID, 900)
+}
+
 func newGradeTestStudent(t *testing.T) *domain.Student {
 	t.Helper()
 

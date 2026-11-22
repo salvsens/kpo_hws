@@ -3,6 +3,7 @@ package domain
 
 import (
 	"errors"
+	"maps"
 	"strings"
 )
 
@@ -44,6 +45,15 @@ func (s Student) ID() string {
 // Name returns the student name.
 func (s Student) Name() string {
 	return s.name
+}
+
+// Clone returns a copy of the student with an independent set of grades.
+func (s Student) Clone() *Student {
+	return &Student{
+		id:     s.id,
+		name:   s.name,
+		grades: maps.Clone(s.grades),
+	}
 }
 
 // SetGrade records the first grade for the criterion after it checks the score.
