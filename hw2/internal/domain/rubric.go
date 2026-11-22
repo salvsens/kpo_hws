@@ -52,3 +52,15 @@ func (r *Rubric) AddCriterion(criterion Criterion) error {
 func (r *Rubric) Criteria() []Criterion {
 	return slices.Clone(r.criteria)
 }
+
+// FindCriterion returns the criterion with the specified ID.
+// It returns a zero criterion and false if the rubric has no criterion with that ID.
+func (r *Rubric) FindCriterion(id string) (Criterion, bool) {
+	index := slices.IndexFunc(r.criteria, func(criterion Criterion) bool {
+		return criterion.ID() == id
+	})
+	if index < 0 {
+		return Criterion{}, false
+	}
+	return r.criteria[index], true
+}

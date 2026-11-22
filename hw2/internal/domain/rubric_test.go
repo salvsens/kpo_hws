@@ -104,6 +104,61 @@ func TestRubricCriteriaReturnsCopy(t *testing.T) {
 	}
 }
 
+func TestRubricFindCriterion(t *testing.T) {
+	t.Parallel()
+
+	first := newTestCriterion(t, "C-001", "Практика", 40)
+	second := newTestCriterion(t, "C-002", "Проект", 60)
+	criteria := []domain.Criterion{first, second}
+	cases := []struct {
+		name     string
+		criteria []domain.Criterion
+		id       string
+		want     domain.Criterion
+		wantOK   bool
+	}{
+		{
+			name:     "second criterion",
+			criteria: criteria,
+			id:       second.ID(),
+			want:     second,
+			wantOK:   true,
+		},
+		{
+			name:     "unknown ID",
+			criteria: criteria,
+			id:       "C-003",
+			want:     domain.Criterion{},
+			wantOK:   false,
+		},
+		{
+			name:   "empty rubric",
+			id:     first.ID(),
+			want:   domain.Criterion{},
+			wantOK: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var rubric domain.Rubric
+			for _, criterion := range tc.criteria {
+				if err := rubric.AddCriterion(criterion); err != nil {
+					t.Fatalf("AddCriterion(%q) error = %v, want nil", criterion.ID(), err)
+				}
+			}
+
+			got, ok := rubric.FindCriterion(tc.id)
+
+			if got != tc.want || ok != tc.wantOK {
+				t.Errorf("FindCriterion(%q) = (%v, %t), want (%v, %t)", tc.id, got, ok, tc.want, tc.wantOK)
+			}
+		})
+	}
+}
+
 func newTestCriterion(t *testing.T, id, name string, percent int) domain.Criterion {
 	t.Helper()
 
