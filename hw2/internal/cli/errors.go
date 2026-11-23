@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 
 	"github.com/salvsens/kpo_hws/hw2/internal/app"
 	"github.com/salvsens/kpo_hws/hw2/internal/domain"
@@ -25,6 +26,9 @@ var errorHints = []struct {
 	{err: domain.ErrNoGrades, hint: "Текущий итог недоступен. Выставьте хотя бы одну оценку командой set-grade."},
 	{err: domain.ErrIncompleteRubric, hint: "Финальный итог недоступен. Добавьте критерии, чтобы сумма весов стала 100%."},
 	{err: app.ErrInvalidResultMode, hint: "Неизвестный режим итога. Укажите current или final."},
+	{err: fs.ErrExist, hint: "Файл уже существует. Выберите новый путь."},
+	{err: fs.ErrNotExist, hint: "Папка для CSV не найдена. Проверьте путь к файлу."},
+	{err: fs.ErrPermission, hint: "Нет доступа к пути для CSV. Выберите папку, в которую можно записать файл."},
 }
 
 // explainError returns a message for a command error.

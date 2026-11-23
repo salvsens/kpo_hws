@@ -9,6 +9,7 @@ import (
 
 	"github.com/salvsens/kpo_hws/hw2/internal/app"
 	"github.com/salvsens/kpo_hws/hw2/internal/cli"
+	"github.com/salvsens/kpo_hws/hw2/internal/csvexport"
 	"github.com/salvsens/kpo_hws/hw2/internal/memory"
 )
 
@@ -182,7 +183,11 @@ func (w failedWriter) Write(_ []byte) (int, error) {
 }
 
 func newTestREPL() *cli.REPL {
-	return cli.New(app.NewGradebook(memory.NewRepository()))
+	writer := csvexport.NewWriter()
+	newGradebook := func() *app.Gradebook {
+		return app.NewGradebook(memory.NewRepository(), writer)
+	}
+	return cli.New(newGradebook(), newGradebook)
 }
 
 func assertOutputOrder(t *testing.T, out string, parts []string) {

@@ -26,12 +26,16 @@ type CriterionSummary struct {
 type Gradebook struct {
 	mu         sync.RWMutex
 	repository Repository
+	exporter   ResultExporter
 }
 
-// NewGradebook creates a gradebook for the supplied repository.
+// NewGradebook creates a gradebook with the supplied repository and exporter.
 // Use one gradebook for each repository.
-func NewGradebook(repository Repository) *Gradebook {
-	return &Gradebook{repository: repository}
+func NewGradebook(repository Repository, exporter ResultExporter) *Gradebook {
+	return &Gradebook{
+		repository: repository,
+		exporter:   exporter,
+	}
 }
 
 // AddStudent creates a student with the next student ID.

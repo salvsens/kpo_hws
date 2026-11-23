@@ -13,8 +13,19 @@ import (
 	"github.com/salvsens/kpo_hws/hw2/internal/app"
 )
 
-// errInvalidArguments indicates that the command has the wrong number of arguments.
-var errInvalidArguments = errors.New("invalid arguments")
+const (
+	// studentsCommand lists the students.
+	studentsCommand = "students"
+	// criteriaCommand lists the criteria.
+	criteriaCommand = "criteria"
+)
+
+var (
+	// errInvalidArguments indicates that the command has the wrong number of arguments.
+	errInvalidArguments = errors.New("invalid arguments")
+	// errUnknownCommand indicates that the command is not in the list.
+	errUnknownCommand = errors.New("unknown command")
+)
 
 // command defines the syntax and operation for one command.
 type command struct {
@@ -25,25 +36,38 @@ type command struct {
 	exits  bool
 }
 
+// commandResult gives the output, error, and status of one command.
+type commandResult struct {
+	text string
+	err  error
+	done bool
+}
+
 // REPL reads commands and returns results from the gradebook.
 type REPL struct {
 	gradebook *app.Gradebook
+	newDemo   func() *app.Gradebook
 	commands  []command
 }
 
-// New creates a console for the supplied gradebook.
-func New(gradebook *app.Gradebook) *REPL {
-	repl := &REPL{gradebook: gradebook}
+// New creates a console with a factory for empty demo journals.
+func New(gradebook *app.Gradebook, newDemo func() *app.Gradebook) *REPL {
+	repl := &REPL{
+		gradebook: gradebook,
+		newDemo:   newDemo,
+	}
 	repl.commands = []command{
 		{name: "add-student", usage: "add-student <имя>", run: repl.addStudent},
-		{name: "students", usage: "students", run: repl.listStudents, noArgs: true},
+		{name: studentsCommand, usage: studentsCommand, run: repl.listStudents, noArgs: true},
 		{name: "add-criterion", usage: "add-criterion <максимум> <вес> <название>", run: repl.addCriterion},
-		{name: "criteria", usage: "criteria", run: repl.listCriteria, noArgs: true},
+		{name: criteriaCommand, usage: criteriaCommand, run: repl.listCriteria, noArgs: true},
 		{name: "set-grade", usage: "set-grade <студент> <критерий> <балл>", run: repl.setGrade},
 		{name: "grades", usage: "grades <студент>", run: repl.listGrades},
 		{name: "edit-grade", usage: "edit-grade <студент> <критерий> <балл>", run: repl.editGrade},
 		{name: "cancel-grade", usage: "cancel-grade <студент> <критерий>", run: repl.cancelGrade},
 		{name: "result", usage: "result <студент> <current|final>", run: repl.showResult},
+		{name: "export", usage: "export <студент> <current|final> <файл.csv>", run: repl.exportResult},
+		{name: "demo", usage: "demo <файл.csv>", run: repl.runDemo},
 		{name: "help", usage: "help", run: repl.help, noArgs: true},
 		{name: "exit", usage: "exit", run: exit, noArgs: true, exits: true},
 	}
@@ -64,11 +88,11 @@ func (r *REPL) Run(in io.Reader, out io.Writer) error {
 			return fmt.Errorf("read command: %w", readErr)
 		}
 		if text := strings.TrimSpace(line); text != "" {
-			response, done := r.execute(text)
-			if _, err := io.WriteString(out, response+"\n"); err != nil {
+			response := r.execute(text)
+			if _, err := io.WriteString(out, response.text+"\n"); err != nil {
 				return fmt.Errorf("write response: %w", err)
 			}
-			if done {
+			if response.done {
 				return nil
 			}
 		}
@@ -78,27 +102,33 @@ func (r *REPL) Run(in io.Reader, out io.Writer) error {
 	}
 }
 
-// execute runs one command and reports if the console must close.
-func (r *REPL) execute(line string) (string, bool) {
+// execute runs one command and prepares its output.
+func (r *REPL) execute(line string) commandResult {
 	name, args := splitWord(line)
 	index := slices.IndexFunc(r.commands, func(cmd command) bool {
 		return cmd.name == name
 	})
 	if index < 0 {
-		return fmt.Sprintf("Ошибка. Неизвестная команда %q. Введите help.", name), false
+		return commandResult{
+			text: fmt.Sprintf("Ошибка. Неизвестная команда %q. Введите help.", name),
+			err:  errUnknownCommand,
+		}
 	}
 	cmd := r.commands[index]
 	if cmd.noArgs && args != "" {
-		return usageError(cmd.usage), false
+		return usageError(cmd.usage)
 	}
 	text, err := cmd.run(args)
 	if errors.Is(err, errInvalidArguments) {
-		return usageError(cmd.usage), false
+		return usageError(cmd.usage)
 	}
 	if err != nil {
-		return "Ошибка. " + explainError(err), false
+		return commandResult{
+			text: text + "Ошибка. " + explainError(err),
+			err:  err,
+		}
 	}
-	return text, cmd.exits
+	return commandResult{text: text, done: cmd.exits}
 }
 
 // help returns the current list of commands.
@@ -125,6 +155,9 @@ func splitWord(line string) (string, string) {
 }
 
 // usageError returns the syntax for a command with invalid arguments.
-func usageError(usage string) string {
-	return "Ошибка. Используйте команду: " + usage
+func usageError(usage string) commandResult {
+	return commandResult{
+		text: "Ошибка. Используйте команду: " + usage,
+		err:  errInvalidArguments,
+	}
 }

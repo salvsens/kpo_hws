@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/salvsens/kpo_hws/hw2/internal/app"
+	"github.com/salvsens/kpo_hws/hw2/internal/csvexport"
 	"github.com/salvsens/kpo_hws/hw2/internal/domain"
 	"github.com/salvsens/kpo_hws/hw2/internal/memory"
 )
@@ -14,7 +15,7 @@ import (
 func TestGradebookScenarios(t *testing.T) {
 	t.Parallel()
 
-	gradebook := app.NewGradebook(memory.NewRepository())
+	gradebook := app.NewGradebook(memory.NewRepository(), csvexport.NewWriter())
 	student := addStudent(t, gradebook, "Анна Смирнова")
 	second := addStudent(t, gradebook, "Анна Смирнова")
 	practice := addCriterion(t, gradebook, "Практика", 1000, 40)
@@ -72,7 +73,7 @@ func TestGradebookScenarios(t *testing.T) {
 func TestGradebookReportsUnknownIDsAndModes(t *testing.T) {
 	t.Parallel()
 
-	gradebook := app.NewGradebook(memory.NewRepository())
+	gradebook := app.NewGradebook(memory.NewRepository(), csvexport.NewWriter())
 	student := addStudent(t, gradebook, "Анна Смирнова")
 	practice := addCriterion(t, gradebook, "Практика", 1000, 100)
 	const unknownStudent = "S-002"
@@ -99,7 +100,7 @@ func TestGradebookReportsUnknownIDsAndModes(t *testing.T) {
 func TestGradebookKeepsIDsAfterRejectedAdds(t *testing.T) {
 	t.Parallel()
 
-	gradebook := app.NewGradebook(memory.NewRepository())
+	gradebook := app.NewGradebook(memory.NewRepository(), csvexport.NewWriter())
 	if _, err := gradebook.AddStudent(" "); !errors.Is(err, domain.ErrInvalidStudentName) {
 		t.Errorf("AddStudent(blank name) error = %v, want %v", err, domain.ErrInvalidStudentName)
 	}
@@ -122,7 +123,7 @@ func TestGradebookKeepsStoredGradeWhenSaveFails(t *testing.T) {
 	t.Parallel()
 
 	repository := &saveStudentRepository{Repository: memory.NewRepository()}
-	gradebook := app.NewGradebook(repository)
+	gradebook := app.NewGradebook(repository, csvexport.NewWriter())
 	student := addStudent(t, gradebook, "Анна Смирнова")
 	practice := addCriterion(t, gradebook, "Практика", 1000, 100)
 	setGrade(t, gradebook, student.ID, practice, 800)
@@ -137,7 +138,7 @@ func TestGradebookKeepsStoredGradeWhenSaveFails(t *testing.T) {
 func TestGradebookKeepsConcurrentGradeUpdates(t *testing.T) {
 	t.Parallel()
 
-	gradebook := app.NewGradebook(memory.NewRepository())
+	gradebook := app.NewGradebook(memory.NewRepository(), csvexport.NewWriter())
 	student := addStudent(t, gradebook, "Анна Смирнова")
 	practice := addCriterion(t, gradebook, "Практика", 1000, 40)
 	project := addCriterion(t, gradebook, "Проект", 2000, 60)
