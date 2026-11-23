@@ -17,7 +17,8 @@ var (
 
 // MissingGradeError identifies a criterion that requires a grade for the final result.
 type MissingGradeError struct {
-	CriterionID string
+	CriterionID   string
+	CriterionName string
 }
 
 // ResultStrategy selects the grades for a result.
@@ -84,21 +85,24 @@ func (CurrentResult) selectGrades(student *Student, rubric Rubric) ([]weightedGr
 
 // selectGrades selects all grades for a complete rubric.
 func (FinalResult) selectGrades(student *Student, rubric Rubric) ([]weightedGrade, error) {
-	grades, totalWeight, missingID := collectResultGrades(student, rubric)
+	grades, totalWeight, missing := collectResultGrades(student, rubric)
 	if totalWeight != maxTotalWeightPercent {
 		return nil, ErrIncompleteRubric
 	}
-	if missingID != "" {
-		return nil, MissingGradeError{CriterionID: missingID}
+	if missing.ID() != "" {
+		return nil, MissingGradeError{
+			CriterionID:   missing.ID(),
+			CriterionName: missing.Name(),
+		}
 	}
 	return grades, nil
 }
 
-// collectResultGrades collects grades, total rubric weight, and the first missing criterion ID.
-func collectResultGrades(student *Student, rubric Rubric) ([]weightedGrade, int, string) {
+// collectResultGrades collects grades, total rubric weight, and the first criterion without a grade.
+func collectResultGrades(student *Student, rubric Rubric) ([]weightedGrade, int, Criterion) {
 	var grades []weightedGrade
 	var totalWeight int
-	var missingID string
+	var missing Criterion
 	for _, criterion := range rubric.criteria {
 		totalWeight += criterion.Weight().Percent()
 		evaluation, ok := student.FindGrade(criterion.ID())
@@ -107,9 +111,9 @@ func collectResultGrades(student *Student, rubric Rubric) ([]weightedGrade, int,
 				criterion:  criterion,
 				evaluation: evaluation,
 			})
-		} else if missingID == "" {
-			missingID = criterion.ID()
+		} else if missing.ID() == "" {
+			missing = criterion
 		}
 	}
-	return grades, totalWeight, missingID
+	return grades, totalWeight, missing
 }
